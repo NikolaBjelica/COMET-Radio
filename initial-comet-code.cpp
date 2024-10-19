@@ -132,6 +132,8 @@ void doTracking()
     /*Serial.print("stepperYDegrees: ");
     Serial.println(stepperYDegrees);*/  // Correct way to print float value
   }
+
+  delay(1000);
 }
 
 void setInitalMotors() 
@@ -144,12 +146,30 @@ void setInitalMotors()
     while (Serial.available() == 0) {}
     float x_angle = Serial.parseFloat();
 
+    Serial.println(x_angle);
+
     Serial.println("What angle would you want to set for the Y Motor?");
     while (Serial.available() == 0) {}
     float y_angle = Serial.parseFloat();
 
+    Serial.println(y_angle);
+
+    unsigned long StartTime = millis();
+
     setMotorX(x_angle);
     setMotorY(y_angle);
+
+    //unsigned long EndTime = millis();
+
+    //unsigned long Duration = EndTime - StartTime;
+
+    //float seconds = Duration / 1000.0;
+
+    /*char str[100];
+
+    sprintf(str, "The Time Duration is: %f", seconds);
+
+    Serial.println(str);*/
 
     Serial.println("Satisfied?\n 0 for Yes\n 1 for No\n");
     while (Serial.available() == 0) {}
@@ -199,10 +219,10 @@ void setup()
   stepper2.begin(5, 1);
 
   // Set up limit switch as an input with internal pull-up resistor
-  pinMode(LIMIT_SWITCH, INPUT_PULLUP);
+  pinMode(LIMIT_SWITCH, INPUT);
 
   // Attach the interrupt to the limit switch pin
-  attachInterrupt(digitalPinToInterrupt(LIMIT_SWITCH), handleLimitSwitch, LOW);
+  //attachInterrupt(digitalPinToInterrupt(LIMIT_SWITCH), handleLimitSwitch, LOW);
 }
 
 void read_serial() 
@@ -216,6 +236,7 @@ void read_serial()
       case STOP:
         stopAllMotors();
         tracking = 0;
+        stopY = 0;
         break;
       case RESET:
         resetAllMotors();
