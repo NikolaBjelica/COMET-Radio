@@ -3,19 +3,19 @@
 
 #define MOTOR_STEPS 200
 
-#define DIR_1 2
+#define DIR_1 19
 #define STEP_1 4
-#define SLEEP_1 5
-#define RESET_1 12
+#define SLEEP_1 27
+#define RESET_1 32
 #define MS3_1 27
 #define MS2_1 26
 #define MS1_1 25
-#define ENABLE_1 33
+#define ENABLE_1 35
 
 #define DIR_2 13
 #define STEP_2 14
-#define SLEEP_2 15
-#define RESET_2 15
+#define SLEEP_2 33
+#define RESET_2 33
 #define MS3_2 17
 #define MS2_2 5
 #define MS1_2 18
