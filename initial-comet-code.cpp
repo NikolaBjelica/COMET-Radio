@@ -5,21 +5,13 @@
 
 #define DIR_1 19
 #define STEP_1 4
-#define SLEEP_1 27
+#define SLEEP_1 32
 #define RESET_1 32
-#define MS3_1 27
-#define MS2_1 26
-#define MS1_1 25
-#define ENABLE_1 35
 
 #define DIR_2 13
 #define STEP_2 14
-#define SLEEP_2 33
-#define RESET_2 33
-#define MS3_2 17
-#define MS2_2 5
-#define MS1_2 18
-#define ENABLE_2 19
+#define SLEEP_2 27
+#define RESET_2 27
 
 #define LIMIT_SWITCH 34  // Pin for the limit switch (must be interrupt-capable)
 
@@ -217,6 +209,12 @@ void setup()
   // Initialize the stepper motors
   stepper1.begin(5, 1);  // 0.25 RPM and full step mode
   stepper2.begin(5, 1);
+
+  digitalWrite(SLEEP_1, HIGH);
+  digitalWrite(RESET_1, HIGH);
+
+  digitalWrite(SLEEP_2, HIGH);
+  digitalWrite(RESET_2, HIGH);
 
   // Set up limit switch as an input with internal pull-up resistor
   pinMode(LIMIT_SWITCH, INPUT);
