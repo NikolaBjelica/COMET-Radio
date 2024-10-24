@@ -1,5 +1,5 @@
 #include "Arduino.h"
-#include "A4988.h"
+#include "DRV8825.h"
 
 #define MOTOR_STEPS 200
 
@@ -23,8 +23,8 @@ enum commands
   TRACK = 0x03
 };
 
-A4988 stepper1(MOTOR_STEPS, DIR_1, STEP_1);
-A4988 stepper2(MOTOR_STEPS, DIR_2, STEP_2);
+DRV8825 stepper1(MOTOR_STEPS, DIR_1, STEP_1);
+DRV8825 stepper2(MOTOR_STEPS, DIR_2, STEP_2);
 
 // Variables to track the motor state
 volatile bool stopMotors = false;
