@@ -20,7 +20,11 @@ enum commands
   STOP = 0x00,
   RESET = 0x01,
   SET = 0x02,
-  TRACK = 0x03
+  TRACK = 0x03,
+  SPEED = 0x04,
+  AXIS = 0x05,
+  ANGLE = 0x06,
+  RESETSYSTEM = 0x07
 };
 
 DRV8825 stepper1(MOTOR_STEPS, DIR_1, STEP_1);
@@ -29,25 +33,28 @@ DRV8825 stepper2(MOTOR_STEPS, DIR_2, STEP_2);
 // Variables to track the motor state
 volatile bool stopMotors = false;
 volatile bool limitSwitchPressed = false;  // To track if the switch is pressed or released
-bool motorsRunning = true;  // Motors are running at the start
 
 bool moveReverseX = false;
 bool moveReverseY = false;
 
+bool movingAlongX = false;
+bool movingAlongY = false;
+
 int stopY = 0;
 int tracking = 0;
+int angleSet = 0;
+int axisSet = 0;
+int speedSet = 0;
 
-int stepperXDegrees = 0;
-int stepperYDegrees = 0;
+float secondsBetweenMovement = 0.0;
+float angleBetweenMovement = 0.0;
 
-// Interrupt service routine (ISR) for limit switch press
-void IRAM_ATTR handleLimitSwitch() 
-{
-  if (digitalRead(LIMIT_SWITCH) == LOW) 
-  {
-    handleMotorSwitchCase();
-  }
-}
+float stepperXDegrees = 0.0;
+float stepperYDegrees = 0.0;
+
+float pastTime = 0.0;
+float currentTime = 0.0;
+bool pastTimeTaken = false;
 
 // Function to stop the motors
 void stopAllMotors() 
@@ -55,11 +62,15 @@ void stopAllMotors()
   stepper1.stop();
   stepper2.stop();
   Serial.println("Motors stopped.");
+  tracking = 0;
+  angleSet = 0;
+  axisSet = 0;
+  speedSet = 0;
+  pastTimeTaken = false;
 }
 
 void handleMotorSwitchCase() 
 {
-  // stepper2.rotate(-10);  // Rotate stepper 2 back a small amount
   stepper2.stop();
   stopY = 1;
   Serial.print(stopY);
@@ -73,7 +84,7 @@ void resetAllMotors()
   Serial.println("Both motors reset to initial positions.");
 }
 
-void doTracking() 
+/*void doTracking() 
 {
   if (stepperXDegrees == 180)
   {
@@ -99,33 +110,70 @@ void doTracking()
   {
     stepper1.rotate(10);
     stepperXDegrees += 10;
-    /*Serial.print("stepperXDegrees: ");
-    Serial.println(stepperXDegrees);*/  // Correct way to print float value
+    Serial.print("stepperXDegrees: ");
+    Serial.println(stepperXDegrees);  // Correct way to print float value
   } 
   else 
   {
     stepper1.rotate(-10);
     stepperXDegrees -= 10;
-    /*Serial.print("stepperXDegrees: ");
-    Serial.println(stepperXDegrees);*/  // Correct way to print float value
+    Serial.print("stepperXDegrees: ");
+    Serial.println(stepperXDegrees);  // Correct way to print float value
   }
 
   if (false == moveReverseY && stopY != 1) 
   {
     stepper2.rotate(10);
     stepperYDegrees += 10;
-    /*Serial.print("stepperYDegrees: ");
-    Serial.println(stepperYDegrees);*/  // Correct way to print float value
+    Serial.print("stepperYDegrees: ");
+    Serial.println(stepperYDegrees);  // Correct way to print float value
   } 
   else if (true == moveReverseY && stopY != 1)
   {
     stepper2.rotate(-10);
     stepperYDegrees -= 10;
-    /*Serial.print("stepperYDegrees: ");
-    Serial.println(stepperYDegrees);*/  // Correct way to print float value
+    Serial.print("stepperYDegrees: ");
+    Serial.println(stepperYDegrees);  // Correct way to print float value
   }
 
   delay(1000);
+}*/
+
+void doTracking()
+{
+  if (!pastTimeTaken)
+  {
+    pastTime = millis();
+    pastTime /= 1000;
+    pastTimeTaken = true;
+  }
+
+  currentTime = millis();
+  currentTime /= 1000;
+
+  float totalTimeElapsed = currentTime - pastTime;
+
+  /*Serial.println(currentTime);
+  Serial.println(pastTime);
+  Serial.println(totalTimeElapsed);*/
+
+  if (totalTimeElapsed >= secondsBetweenMovement)
+  {
+    if (movingAlongX)
+    {
+      stepper1.rotate(angleBetweenMovement);
+      stepperXDegrees += angleBetweenMovement;
+      Serial.println(stepperXDegrees);
+    }
+    else if (movingAlongY)
+    {
+      stepper2.rotate(angleBetweenMovement);
+      stepperYDegrees += angleBetweenMovement;
+      Serial.println(stepperYDegrees);
+    }
+    pastTime = currentTime;
+    pastTimeTaken = false;
+  }
 }
 
 void setInitalMotors() 
@@ -151,19 +199,7 @@ void setInitalMotors()
     setMotorX(x_angle);
     setMotorY(y_angle);
 
-    //unsigned long EndTime = millis();
-
-    //unsigned long Duration = EndTime - StartTime;
-
-    //float seconds = Duration / 1000.0;
-
-    /*char str[100];
-
-    sprintf(str, "The Time Duration is: %f", seconds);
-
-    Serial.println(str);*/
-
-    Serial.println("Satisfied?\n 0 for Yes\n 1 for No\n");
+    Serial.println("Satisfied?\n\r 0 for Yes\n\r 1 for No\n");
     while (Serial.available() == 0) {}
     int response = Serial.parseInt();
 
@@ -207,7 +243,7 @@ void setup()
   Serial.begin(9600);
   
   // Initialize the stepper motors
-  stepper1.begin(5, 1);  // 0.25 RPM and full step mode
+  stepper1.begin(5, 1);  // 5 RPM and full step mode
   stepper2.begin(5, 1);
 
   digitalWrite(SLEEP_1, HIGH);
@@ -218,9 +254,48 @@ void setup()
 
   // Set up limit switch as an input with internal pull-up resistor
   pinMode(LIMIT_SWITCH, INPUT);
+}
 
-  // Attach the interrupt to the limit switch pin
-  //attachInterrupt(digitalPinToInterrupt(LIMIT_SWITCH), handleLimitSwitch, LOW);
+void setSpeed()
+{
+  Serial.println("How often would you want the antenna to move (In terms of seconds)?");
+  while (Serial.available() == 0) {}
+  secondsBetweenMovement = Serial.parseFloat();
+  Serial.print(secondsBetweenMovement);
+  speedSet = 1;
+}
+
+void setAxis()
+{
+  Serial.println("What axis would you want to be the main point of rotating?\n\r 0 for X\n\r 1 for Y");
+  while (Serial.available() == 0) {}
+  int choice = Serial.parseInt();
+
+  if (0 == choice)
+  {
+    movingAlongX = true;
+    movingAlongY = false;
+  }
+  else if (1 == choice)
+  {
+    movingAlongX = false;
+    movingAlongY = true;
+  }
+  else
+  {
+    movingAlongX = false;
+    movingAlongY = false;
+  }
+
+  axisSet = 1;
+}
+
+void setAngle()
+{
+  Serial.println("What angle do you want the antenna to move?");
+  while (Serial.available() == 0) {}
+  angleBetweenMovement = Serial.parseFloat();
+  angleSet = 1;
 }
 
 void read_serial() 
@@ -233,7 +308,6 @@ void read_serial()
     {
       case STOP:
         stopAllMotors();
-        tracking = 0;
         stopY = 0;
         break;
       case RESET:
@@ -243,7 +317,19 @@ void read_serial()
         setInitalMotors();
         break;
       case TRACK:
-        tracking = 1;
+        if (angleSet == 1 && speedSet == 1 && axisSet == 1)
+          tracking = 1;
+        else
+          Serial.println("Not all parameters have been set...");
+        break;
+      case AXIS:
+        setAxis();
+        break;
+      case SPEED:
+        setSpeed();
+        break;
+      case ANGLE:
+        setAngle();
         break;
       default:
         Serial.println("Invalid Command, please enter a valid command.");
@@ -263,7 +349,7 @@ void loop()
     }
 
     // Perform tracking if enabled
-    if (tracking == 1) 
+    if (tracking == 1 && angleSet == 1 && speedSet == 1 && axisSet == 1) 
     {
       doTracking();
     }
