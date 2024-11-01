@@ -15,7 +15,8 @@
 
 #define LIMIT_SWITCH 34  // Pin for the limit switch (must be interrupt-capable)
 
-enum commands {
+enum commands 
+{
   STOP = 0x00,
   RESET = 0x01,
   SET = 0x02,
@@ -53,7 +54,7 @@ float initialElevation = 0.0;
 float finalAzimuth = 0.0;
 float finalElevation = 0.0;
 
-float azimuthRate = 0.0; 
+float azimuthRate = 0.0;
 float elevationRate = 0.0;
 
 float timeDuration = 0.0;
@@ -63,8 +64,7 @@ float currentTime = 0.0;
 bool pastTimeTaken = false;
 
 // Function to stop the motors
-void stopAllMotors() 
-{
+void stopAllMotors() {
   stepper1.stop();
   stepper2.stop();
   Serial.println("Motors stopped.");
@@ -107,8 +107,7 @@ void doTracking() {
   Serial.println(pastTime);
   Serial.println(totalTimeElapsed);*/
 
-  if (totalTimeElapsed >= 15.0) 
-  {
+  if (totalTimeElapsed >= 15.0) {
     stepper1.rotate(azimuthRate * totalTimeElapsed);
     stepperXDegrees += azimuthRate * totalTimeElapsed;
     Serial.println(stepperXDegrees);
@@ -116,17 +115,15 @@ void doTracking() {
     stepper2.rotate(elevationRate * totalTimeElapsed);
     stepperYDegrees += elevationRate * totalTimeElapsed;
     Serial.println(stepperYDegrees);
-    
+
     pastTimeTaken = false;
   }
 }
 
-void setInitalMotors() 
-{
+void setInitalMotors() {
   bool settingMotors = true;
 
-  while (settingMotors) 
-  {
+  while (settingMotors) {
     Serial.println("What angle would you want to set for the X Motor?");
     while (Serial.available() == 0) {}
     float x_angle = Serial.parseFloat();
@@ -148,8 +145,7 @@ void setInitalMotors()
     while (Serial.available() == 0) {}
     int response = Serial.parseInt();
 
-    if (0 == response) 
-    {
+    if (0 == response) {
       settingMotors = false;
       initialSet = 1;
     }
@@ -184,6 +180,7 @@ void setMotorX(float newDegrees) {
   float delta = newDegrees - initialAzimuth;
   stepper1.rotate(delta);
   initialAzimuth = newDegrees;
+  stepperXDegrees = newDegrees;
 }
 
 void setMotorY(float newDegrees) {
@@ -191,6 +188,7 @@ void setMotorY(float newDegrees) {
   float delta = newDegrees - initialElevation;
   stepper2.rotate(delta);
   initialElevation = newDegrees;
+  stepperYDegrees = newDegrees;
 }
 
 void resetXMotor() {
@@ -203,11 +201,10 @@ void resetYMotor() {
   stepperYDegrees = 0;
 }
 
-void findDegreesRate() 
-{
+void findDegreesRate() {
   azimuthRate = (finalAzimuth - initialAzimuth) / timeDuration;
   elevationRate = (finalElevation - initialElevation) / timeDuration;
-  Serial.print(initialAzimuth);
+  /*Serial.print(initialAzimuth);
   Serial.println('\n');
   Serial.print(finalAzimuth);
   Serial.println('\n');
@@ -221,7 +218,7 @@ void findDegreesRate()
   Serial.println('\n');
   Serial.print(timeDuration);
   Serial.println('\n');
-  Serial.print(elevationRate);
+  Serial.print(elevationRate);*/
 }
 
 void setup() {
@@ -242,8 +239,7 @@ void setup() {
 }
 
 void read_serial() {
-  if (Serial.available()) 
-  {
+  if (Serial.available()) {
     int command = Serial.parseInt();
 
     switch (command) {
@@ -258,12 +254,10 @@ void read_serial() {
         setInitalMotors();
         break;
       case TRACK:
-        if (initialSet == 1 && endSet == 1 && timeSet == 1) 
-        {
+        if (initialSet == 1 && endSet == 1 && timeSet == 1) {
           findDegreesRate();
           tracking = 1;
-        } 
-        else
+        } else
           Serial.println("Not all parameters have been set...");
         break;
       case END:
