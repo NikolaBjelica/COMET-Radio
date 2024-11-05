@@ -58,6 +58,7 @@ float azimuthRate = 0.0;
 float elevationRate = 0.0;
 
 float timeDuration = 0.0;
+float timeTracking = 0.0;
 
 float pastTime = 0.0;
 float currentTime = 0.0;
@@ -103,15 +104,32 @@ void doTracking() {
   Serial.println(pastTime);
   Serial.println(totalTimeElapsed);*/
 
-  if (totalTimeElapsed >= 15.0) {
+  if (totalTimeElapsed >= 15.0) 
+  {
     stepper1.rotate(azimuthRate * totalTimeElapsed);
     stepperXDegrees += azimuthRate * totalTimeElapsed;
 
     stepper2.rotate(elevationRate * totalTimeElapsed);
     stepperYDegrees += elevationRate * totalTimeElapsed;
 
+    timeTracking += totalTimeElapsed;
+    //Serial.println(timeTracking);
+
     pastTimeTaken = false;
   }
+
+ if (timeTracking >= timeDuration)
+ {
+    tracking = 0;
+    initialSet = 0;
+    endSet = 0;
+    timeDuration = 0;
+    initialAzimuth = 0.0;
+    initialElevation = 0.0;
+    finalAzimuth = 0.0;
+    finalElevation = 0.0;
+ }
+  
 }
 
 void setInitalMotors() {
@@ -128,11 +146,9 @@ void setInitalMotors() {
     float x_angle = strXAngle.toFloat();
     float y_angle = strYAngle.toFloat();
 
-    Serial.println(x_angle);
-    Serial.println(y_angle);
-
-    unsigned long StartTime = millis();
-
+    //Serial.println(x_angle);
+    //Serial.println(y_angle);
+    
     setMotorX(x_angle);
     setMotorY(y_angle);
 
@@ -152,8 +168,8 @@ void setEndMotors() {
   finalAzimuth = strXAngle.toFloat();
   finalElevation = strYAngle.toFloat();
 
-  Serial.println(finalAzimuth);
-  Serial.println(finalElevation);
+  //Serial.println(finalAzimuth);
+  //Serial.println(finalElevation);
 
   endSet = 1;
 }
@@ -165,7 +181,7 @@ void setTimeDuration() {
   
   timeDuration = inputString.toFloat();
 
-  Serial.println(timeDuration);
+  //Serial.println(timeDuration);
 
   timeSet = 1;
 }
@@ -250,8 +266,7 @@ void read_serial() {
         if (initialSet == 1 && endSet == 1 && timeSet == 1) {
           findDegreesRate();
           tracking = 1;
-        } else
-          //Serial.println("Not all parameters have been set...");
+        }
         break;
       case END:
         setEndMotors();
