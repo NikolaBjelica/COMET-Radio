@@ -13,6 +13,9 @@
 #define SLEEP_2 27
 #define RESET_2 27
 
+#define X_RATIO 8.0 // 128 for X gear and 16 for small gear
+#define Y_RATIO 10.0 // 160 for COMET gear and 16 for small gear
+
 #define LIMIT_SWITCH 34  // Pin for the limit switch (must be interrupt-capable)
 
 enum commands 
@@ -106,11 +109,11 @@ void doTracking() {
 
   if (totalTimeElapsed >= 15.0) 
   {
-    stepper1.rotate(azimuthRate * totalTimeElapsed);
-    stepperXDegrees += azimuthRate * totalTimeElapsed;
+    stepper1.rotate((azimuthRate * X_RATIO) * totalTimeElapsed);
+    stepperXDegrees += (azimuthRate * X_RATIO) * totalTimeElapsed;
 
-    stepper2.rotate(elevationRate * totalTimeElapsed);
-    stepperYDegrees += elevationRate * totalTimeElapsed;
+    stepper2.rotate((elevationRate * Y_RATIO) * totalTimeElapsed);
+    stepperYDegrees += (elevationRate * Y_RATIO) * totalTimeElapsed;
 
     timeTracking += totalTimeElapsed;
     //Serial.println(timeTracking);
@@ -149,8 +152,8 @@ void setInitalMotors() {
     //Serial.println(x_angle);
     //Serial.println(y_angle);
     
-    setMotorX(x_angle);
-    setMotorY(y_angle);
+    setMotorX(x_angle * X_RATIO);
+    setMotorY(y_angle * Y_RATIO);
 
     initialSet = 1;
 }
