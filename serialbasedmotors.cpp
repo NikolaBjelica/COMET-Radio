@@ -9,7 +9,7 @@
 #define RESET_1 32
 
 #define DIR_2 13
-#define STEP_2 14
+#define STEP_2 33
 #define SLEEP_2 27
 #define RESET_2 27
 
