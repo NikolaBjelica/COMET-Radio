@@ -27,7 +27,7 @@ if __name__ == "__main__":
     filename = '/mnt/c/Users/Nikola Bjelica/OneDrive/Desktop/output.bin'
     sample_rate = 1024000
     start_frame = 0
-    num_frame = 10240
+    num_frame = 1024000000
 
     signal = load_binary_file(filename, start_frame, num_frame)
 

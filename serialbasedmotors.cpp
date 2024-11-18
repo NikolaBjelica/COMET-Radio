@@ -74,11 +74,12 @@ void stopAllMotors() {
   tracking = 0;
   initialSet = 0;
   endSet = 0;
-  timeDuration = 0;
+  timeSet = 0;
+  /*timeDuration = 0;
   initialAzimuth = 0.0;
   initialElevation = 0.0;
   finalAzimuth = 0.0;
-  finalElevation = 0.0;
+  finalElevation = 0.0;*/
 }
 
 void handleMotorSwitchCase() {
@@ -109,11 +110,13 @@ void doTracking() {
 
   if (totalTimeElapsed >= 15.0) 
   {
-    stepper1.rotate((azimuthRate * X_RATIO) * totalTimeElapsed);
-    stepperXDegrees += (azimuthRate * X_RATIO) * totalTimeElapsed;
+    stepper1.rotate((azimuthRate) * totalTimeElapsed);
+    stepperXDegrees += (azimuthRate) * totalTimeElapsed;
 
-    stepper2.rotate((elevationRate * Y_RATIO) * totalTimeElapsed);
-    stepperYDegrees += (elevationRate * Y_RATIO) * totalTimeElapsed;
+    stepper2.rotate((elevationRate) * totalTimeElapsed);
+    stepperYDegrees += (elevationRate) * totalTimeElapsed;
+    /*Serial.println(stepperXDegrees);
+    Serial.println(stepperYDegrees);*/
 
     timeTracking += totalTimeElapsed;
     //Serial.println(timeTracking);
@@ -126,6 +129,7 @@ void doTracking() {
     tracking = 0;
     initialSet = 0;
     endSet = 0;
+    timeSet = 0;
     timeDuration = 0;
     initialAzimuth = 0.0;
     initialElevation = 0.0;
@@ -149,11 +153,14 @@ void setInitalMotors() {
     float x_angle = strXAngle.toFloat();
     float y_angle = strYAngle.toFloat();
 
-    //Serial.println(x_angle);
-    //Serial.println(y_angle);
+    /*Serial.println(x_angle);
+    Serial.println(y_angle);*/
     
     setMotorX(x_angle * X_RATIO);
     setMotorY(y_angle * Y_RATIO);
+
+    /*Serial.println(initialAzimuth);
+    Serial.println(initialElevation);*/
 
     initialSet = 1;
 }
@@ -163,7 +170,6 @@ void setEndMotors() {
   while (Serial.available() == 0) {}
   String inputString = Serial.readStringUntil('\n');
 
-
   int commaIndex = inputString.indexOf(',');
   String strXAngle = inputString.substring(0, commaIndex);
   String strYAngle = inputString.substring(commaIndex + 1);
@@ -171,8 +177,14 @@ void setEndMotors() {
   finalAzimuth = strXAngle.toFloat();
   finalElevation = strYAngle.toFloat();
 
-  //Serial.println(finalAzimuth);
-  //Serial.println(finalElevation);
+  /*Serial.println(finalAzimuth);
+  Serial.println(finalElevation);*/
+
+  finalAzimuth *= X_RATIO;
+  finalElevation *= Y_RATIO;
+
+  /*Serial.println(finalAzimuth);
+  Serial.println(finalElevation);*/
 
   endSet = 1;
 }
@@ -217,19 +229,12 @@ void findDegreesRate() {
   azimuthRate = (finalAzimuth - initialAzimuth) / timeDuration;
   elevationRate = (finalElevation - initialElevation) / timeDuration;
   /*Serial.print(initialAzimuth);
-  Serial.println('\n');
   Serial.print(finalAzimuth);
-  Serial.println('\n');
   Serial.print(timeDuration);
-  Serial.println('\n');
   Serial.print(azimuthRate);
-  Serial.println('\n');
   Serial.print(initialElevation);
-  Serial.println('\n');
   Serial.print(finalElevation);
-  Serial.println('\n');
   Serial.print(timeDuration);
-  Serial.println('\n');
   Serial.print(elevationRate);*/
 }
 
